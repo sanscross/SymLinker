@@ -1,0 +1,10 @@
+E:\визуал студио проекты\SymLinker\SymLinker\bin\Release\SymLinker.exe.config
+E:\визуал студио проекты\SymLinker\SymLinker\bin\Release\SymLinker.exe
+E:\визуал студио проекты\SymLinker\SymLinker\bin\Release\SymLinker.pdb
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.csproj.AssemblyReference.cache
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.Form1.resources
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.Properties.Resources.resources
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.csproj.GenerateResource.cache
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.csproj.CoreCompileInputs.cache
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.exe
+E:\визуал студио проекты\SymLinker\SymLinker\obj\Release\SymLinker.pdb
