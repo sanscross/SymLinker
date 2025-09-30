@@ -1,5 +1,6 @@
 # Download
 [![Download Latest Release](https://img.shields.io/badge/Download-Latest--Version-blue?style=for-the-badge&logo=github)](https://github.com/sanscross/SymLinker/releases/download/latest/SymLinker.exe)
+
 [View all releases](https://github.com/sanscross/SymLinker/releases)
 
 # SymLinker
