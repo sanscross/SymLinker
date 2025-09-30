@@ -4,7 +4,7 @@
 [View all releases](https://github.com/sanscross/SymLinker/releases)
 
 # SymLinker
-An app for quickly making SymLinks (symbol links) with no preparation. The app will move all the files to desired folder and make a symlink in few clicks
+An app for quickly making SymLinks (symbolic links) with no preparation. The app will move all the files to desired folder and make a symlink in few clicks
 
 ![Screenshot of the first app](ver1screen.png)
 
