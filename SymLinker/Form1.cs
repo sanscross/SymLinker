@@ -12,13 +12,13 @@ namespace SymLinker
         private List<string> selectedDirectoryPaths1 = new List<string>();
 
         // Single selected folder for second set of controls
-        private string selectedFolder2 = null;
+        private string destinationFolder = null;
 
         public Form1()
         {
             InitializeComponent();
             InitializeFirstSet();
-            InitializeSecondSet();
+            PopulateTreeView(treeView2);
 
             // Initialize button as disabled
             button1.Enabled = false;
@@ -31,15 +31,6 @@ namespace SymLinker
             this.treeView1.BeforeExpand += new TreeViewCancelEventHandler(this.treeView1_BeforeExpand);
             this.listView1.ItemChecked += new ItemCheckedEventHandler(this.listView1_ItemChecked);
         }
-
-        private void InitializeSecondSet()
-        {
-            PopulateTreeView(treeView2);
-            this.treeView2.NodeMouseClick += new TreeNodeMouseClickEventHandler(this.treeView2_NodeMouseClick);
-            this.treeView2.BeforeExpand += new TreeViewCancelEventHandler(this.treeView2_BeforeExpand);
-            this.listView2.ItemChecked += new ItemCheckedEventHandler(this.listView2_ItemChecked);
-        }
-
         private void PopulateTreeView(TreeView treeView)
         {
             // Disable checkboxes for the tree view (only use them in list view)
@@ -75,12 +66,10 @@ namespace SymLinker
         {
             ProcessTreeViewBeforeExpand(treeView1, listView1, e);
         }
-
         private void treeView2_BeforeExpand(object sender, TreeViewCancelEventArgs e)
         {
-            ProcessTreeViewBeforeExpand(treeView2, listView2, e);
+            ProcessTreeViewBeforeExpand(treeView2, null, e);
         }
-
         private void ProcessTreeViewBeforeExpand(TreeView treeView, ListView listView, TreeViewCancelEventArgs e)
         {
             TreeNode node = e.Node;
@@ -150,17 +139,27 @@ namespace SymLinker
         {
             ProcessNodeMouseClick(treeView1, listView1, e);
         }
-
-        void treeView2_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        private void treeView2_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            ProcessNodeMouseClick(treeView2, listView2, e);
+           
         }
+        private void treeView2_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (e.Node.FullPath is string path)
+            {
+                destinationFolder = path;
+                UpdateLabels();
 
+                UpdateButtonState();
+            }
+
+        }
         private void ProcessNodeMouseClick(TreeView treeView, ListView listView, TreeNodeMouseClickEventArgs e)
         {
             TreeNode newSelected = e.Node;
-            listView.Items.Clear();
 
+            if (listView != null) listView.Items.Clear();
+           
             try
             {
                 // Check if the node represents a drive
@@ -221,18 +220,13 @@ namespace SymLinker
                     listViewItem.SubItems.AddRange(subItems);
                     listViewItem.Tag = dir.FullName; // Store the full path
 
-                    // Set checkbox state based on stored paths (depending on which list view this is)
+                    // Set checkbox state based on stored paths
                     if (listView == listView1)
                     {
                         listViewItem.Checked = selectedDirectoryPaths1.Contains(dir.FullName);
                     }
-                    else if (listView == listView2)
-                    {
-                        // For listView2, only check if this is the currently selected folder
-                        listViewItem.Checked = selectedFolder2 == dir.FullName;
-                    }
 
-                    listView.Items.Add(listViewItem);
+                    if(listView != null)listView.Items.Add(listViewItem);
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -269,18 +263,13 @@ namespace SymLinker
                     listViewItem.SubItems.AddRange(subItems);
                     listViewItem.Tag = file.FullName; // Store the full path
 
-                    // Set checkbox state based on stored paths (depending on which list view this is)
+                    // Set checkbox state based on stored paths
                     if (listView == listView1)
                     {
                         listViewItem.Checked = selectedFilePaths1.Contains(file.FullName);
                     }
-                    else if (listView == listView2)
-                    {
-                        // For listView2, files should not be selectable
-                        listViewItem.Checked = false;
-                    }
 
-                    listView.Items.Add(listViewItem);
+                    if (listView != null) listView.Items.Add(listViewItem);
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -289,7 +278,7 @@ namespace SymLinker
                 }
             }
 
-            listView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            if (listView != null) listView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
         }
         private void listView1_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
@@ -337,53 +326,11 @@ namespace SymLinker
             UpdateButtonState();
         }
 
-        private void listView2_ItemChecked(object sender, ItemCheckedEventArgs e)
-        {
-            if (e.Item.Tag is string path)
-            {
-                if (e.Item.ImageIndex == 0) // Only allow directories to be selected in listView2
-                {
-                    if (e.Item.Checked)
-                    {
-                        // Uncheck all other items in listView2 first
-                        foreach (ListViewItem item in listView2.Items)
-                        {
-                            if (item != e.Item && item.Checked)
-                            {
-                                item.Checked = false;
-                            }
-                        }
-
-                        // Set the selected folder
-                        selectedFolder2 = path;
-                    }
-                    else
-                    {
-                        // If unchecking the selected folder, clear it
-                        if (selectedFolder2 == path)
-                        {
-                            selectedFolder2 = null;
-                        }
-                    }
-                }
-                else
-                {
-                    // If a file was checked in listView2, uncheck it (files not allowed in listView2)
-                    e.Item.Checked = false;
-                }
-            }
-
-            // Update labels after selection changes
-            UpdateLabels();
-
-            UpdateButtonState();
-
-        }
         // Checks if some files and destination folder selected, if that's true, then it activates the button
         void UpdateButtonState()
         {
             button1.Enabled = (selectedFilePaths1.Count > 0 || selectedDirectoryPaths1.Count > 0) &&
-                 !string.IsNullOrEmpty(selectedFolder2);
+                 !string.IsNullOrEmpty(destinationFolder);
         }
         private void UpdateRichTextBox()
         {
@@ -429,9 +376,9 @@ namespace SymLinker
         private void UpdateLabels()
         {
             // Update pathLabel with the selected folder from listView2
-            if (!string.IsNullOrEmpty(selectedFolder2))
+            if (!string.IsNullOrEmpty(destinationFolder))
             {
-                pathLabel.Text = "Path: " + selectedFolder2;
+                pathLabel.Text = "Path: " + destinationFolder;
             }
             else
             {
@@ -453,7 +400,7 @@ namespace SymLinker
                 Form2 form2 = new Form2(
                     new List<string>(selectedFilePaths1),
                     new List<string>(selectedDirectoryPaths1),
-                    selectedFolder2
+                    destinationFolder
                 );
 
                 // Clear selections in Form1 before showing Form2
@@ -488,7 +435,6 @@ namespace SymLinker
             selectedFilePaths1.Clear();
             selectedDirectoryPaths1.Clear();
 
-            // Update all checked items in the first view
             foreach (ListViewItem item in listView1.Items)
             {
                 if (item != null && item.Tag != null)
@@ -497,35 +443,23 @@ namespace SymLinker
                 }
             }
 
-            // Update rich text box and labels
             UpdateRichTextBox();
             UpdateLabels();
 
-            // Update button state
             UpdateButtonState();
         }
 
         public string GetSelectedFolder2()
         {
-            return selectedFolder2;
+            return destinationFolder;
         }
 
         public void ClearSelection2()
         {
-            selectedFolder2 = null;
-
-            // Update all checked items in the second view
-            foreach (ListViewItem item in listView2.Items)
-            {
-                if (item != null && item.Tag != null)
-                {
-                    item.Checked = false;
-                }
-            }
+            destinationFolder = null;
 
             UpdateLabels();
 
-            // Update button state
             UpdateButtonState();
         }
     }
